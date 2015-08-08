@@ -182,7 +182,7 @@ function initMap() {
     }
     // mc = new MarkerClusterer(map, markers, {gridSize: 20, maxZoom: 16});
 
-    $('.header').append('<em class="msg"> 已處理: ' + count[0] + ' 筆，待處理: ' + count[1] + ' 筆');
+    $('.header').append('<em class="msg"> 已處理: ' + count[0] + ' 筆，待處理: ' + count[1] + ' 筆 <a href="http://beta.hackfoldr.org/TPEDisasterSummary" style="color:white;"  target="_blank">其他相關資料</a></em>');
     $('.list').on('click', 'li', function(e){
       e.preventDefault();
       var pid = $(this).data('pid');
