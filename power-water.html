@@ -85,16 +85,33 @@ function initMap() {
     }else{
       var time = new Date(data.CaseTime[0]);
       var diff = now.getTime() - time.getTime() ;
-      if( diff > 1000*60*60 *2 ){
-        pinColor = 'AA2200';
-        zindex = 4;
-      }else if( diff > 1000*60*60 *4 ){
-        pinColor = '664400';
-        zindex = 3;
-      }else if( diff > 1000*60*60 *6 ){
-        pinColor = '336600';
-        zindex = 2;
+
+      if( data.Name[0] == "電力停電"){
+        pinColor = 'DBE0FF' ;
+        if( diff > 1000*60*60 *2 ){
+          pinColor = 'BAC0D8';
+          zindex = 4;
+        }else if( diff > 1000*60*60 *4 ){
+          pinColor = '888AAA';
+          zindex = 3;
+        }else if( diff > 1000*60*60 *6 ){
+          pinColor = '6A6B84';
+          zindex = 2;
+        }
+      } else if(data.Name[0] == "自來水停水"){
+        pinColor = 'FF0000' ;
+        if( diff > 1000*60*60 *2 ){
+          pinColor = 'AA2200';
+          zindex = 4;
+        }else if( diff > 1000*60*60 *4 ){
+          pinColor = '664400';
+          zindex = 3;
+        }else if( diff > 1000*60*60 *6 ){
+          pinColor = '336600';
+          zindex = 2;
+        }
       }
+
       
     }
 
