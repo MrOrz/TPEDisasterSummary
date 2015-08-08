@@ -30,7 +30,7 @@
   <script src="//googlemaps.github.io/js-marker-clusterer/src/markerclusterer_compiled.js"></script>
 </head>
 <body onload="initMap()">
-  <header class="header">蘇迪勒颱風 - 台北市災害動態資訊</header>
+  <header class="header">蘇迪勒颱風 - 台北市停水停電地圖 (政府開放資料應用)</header>
   <div id="map"></div>
   <div class="list"></div>
 
@@ -48,14 +48,67 @@ function initMap() {
   // 地圖初始設定
   var mapOptions = {
     center: new google.maps.LatLng(25.06464, 121.55676),
-    zoom: 12,
+    zoom: 14,
     mapTypeId: google.maps.MapTypeId.ROADMAP,
     styles: styles
   };
 
+  var now = new Date();
   var addMarker = function(data){
-    var pinColor = (data.CaseComplete[0] === "true") ? "80e516" : "FE7569";
-    var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_spin&chld=0.7|0|"+ pinColor +"|15|b|%E5%8D%B1");
+
+    var pinColor = 'FF0000' ;
+    var text = '000000';
+    var zindex=  5;
+
+    if(data.CaseComplete[0] === "true"){
+      pinColor = '00FF00' ;
+      var time = new Date(data.CaseTime[0]);
+      var diff = now.getTime() - time.getTime() ;
+      if( diff > 1000*60*60 *2 ){
+        pinColor = '22AA00';
+        zindex = 4;
+      }else if( diff > 1000*60*60 *4 ){
+        pinColor = '446600';
+        zindex = 3;
+      }else if( diff > 1000*60*60 *6 ){
+        pinColor = '663300';
+        zindex = 2;
+      }
+    }else{
+      var time = new Date(data.CaseTime[0]);
+      var diff = now.getTime() - time.getTime() ;
+      if( diff > 1000*60*60 *2 ){
+        pinColor = 'AA2200';
+        zindex = 4;
+      }else if( diff > 1000*60*60 *4 ){
+        pinColor = '664400';
+        zindex = 3;
+      }else if( diff > 1000*60*60 *6 ){
+        pinColor = '336600';
+        zindex = 2;
+      }
+      
+    }
+
+    //(data.CaseComplete[0] === "true") ? "DDDDDD" : "FE7569";
+
+    var word = "災";
+    if( data.Name[0] == "電力停電"){
+      word = '電';
+    } else if(data.Name[0] == "自來水停水"){
+      word = '水';
+    }
+    if(data.CaseComplete[0] === "true"){
+      word = '恢';
+    }
+
+    var pinImage = null;
+
+    if(data.CaseComplete[0] === "true"){
+      pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_spin&chld=0.7|0|"+ pinColor +"|15|b|"+word);
+    }else{
+      pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_spin&chld=0.7|20|"+ pinColor +"|15|b|"+word);
+    }
 
     var marker = new google.maps.Marker({
         position: new google.maps.LatLng( data.Wgs84Y, data.Wgs84X ),
@@ -63,7 +116,8 @@ function initMap() {
         pid: data['$']['diffgr:id'].toLowerCase(),
         icon: pinImage,
         title: data.CaseLocationDistrict + data.CaseLocationDescription,
-        pinColor: pinColor
+        pinColor: pinColor,
+        zIndex:zindex
     });
 
     marker.infowindow = new google.maps.InfoWindow({
@@ -75,8 +129,8 @@ function initMap() {
     google.maps.event.addListener(marker, 'click', function(e){
       map.panTo( this.position );
       map.setZoom(17);
-      for (var i = 0; i < markers.length; i++) { markers[i].setIcon( new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_spin&chld=0.7|0|"+ markers[i].pinColor +"|15|b|%E5%8D%B1") ); }
-      this.setIcon(new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_spin&chld=1.3|0|"+ this.pinColor +"|22|b|%E5%8D%B1"));
+      // for (var i = 0; i < markers.length; i++) { markers[i].setIcon( new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_spin&chld=0.7|0|"+ markers[i].pinColor +"|15|b|%E5%8D%B1") ); }
+      // this.setIcon(new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_spin&chld=1.3|0|"+ this.pinColor +"|22|b|%E5%8D%B1"));
       $('.list').scrollTop(0);
       $('.list .is-active').removeClass('is-active');
       var currElem = $('.list .' + this.pid);
@@ -105,17 +159,24 @@ function initMap() {
   };
 
   map = new google.maps.Map(document.getElementById("map"), mapOptions);
-
   $.get('http://tonyq.org/kptaipei/GetDisasterSummary-20150808.php', function(raw){
-    var data = raw.DataSet["diffgr:diffgram"][0].NewDataSet[0].CASE_SUMMARY;
+    var rawdata = raw.DataSet["diffgr:diffgram"][0].NewDataSet[0].CASE_SUMMARY;
     var count = [0, 0];
+
+    var data=[];
+    for(var i =0 ; i < rawdata.length; ++i ){
+      if( rawdata[i].Name[0] == "電力停電" || rawdata[i].Name[0] == "自來水停水"){
+        data.push(rawdata[i]);
+      }
+    }
     renderList(data);
+
     for (var i = 0; i < data.length; i++) {
       addMarker( data[i] );
       if( data[i].CaseComplete[0] === "true" ) count[0]++;
       else count[1]++;
     }
-    mc = new MarkerClusterer(map, markers, {gridSize: 80, maxZoom: 16});
+    // mc = new MarkerClusterer(map, markers, {gridSize: 20, maxZoom: 16});
 
     $('.header').append('<em class="msg">已處理: ' + count[0] + ' 筆，待處理: ' + count[1] + ' 筆');
     $('.list').on('click', 'li', function(e){
