@@ -2,7 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>蘇迪勒颱風 - 台北市災害動態資訊</title>
+  <title>蘇迪勒颱風 - 台北市停水停電地圖 (社群開放資料應用)</title>
+  
+  <meta property="og:description" content="資料來自台北市資訊局、消防局 EOC 系統。" />
+  <meta property="og:image"
+content="http://tony1223.github.io/TPEDisasterSummary/ogimage.png" />
   <style>
   /* http://meyerweb.com/eric/tools/css/reset/
      v2.0 | 20110126
@@ -30,7 +34,7 @@
   <script src="//googlemaps.github.io/js-marker-clusterer/src/markerclusterer_compiled.js"></script>
 </head>
 <body onload="initMap()">
-  <header class="header">蘇迪勒颱風 - 台北市停水停電地圖 (政府開放資料應用)</header>
+  <header class="header">蘇迪勒颱風 - 台北市停水停電地圖 (社群開放資料應用)</header>
   <div id="map"></div>
   <div class="list"></div>
 
@@ -178,7 +182,7 @@ function initMap() {
     }
     // mc = new MarkerClusterer(map, markers, {gridSize: 20, maxZoom: 16});
 
-    $('.header').append('<em class="msg">已處理: ' + count[0] + ' 筆，待處理: ' + count[1] + ' 筆');
+    $('.header').append('<em class="msg"> 已處理: ' + count[0] + ' 筆，待處理: ' + count[1] + ' 筆');
     $('.list').on('click', 'li', function(e){
       e.preventDefault();
       var pid = $(this).data('pid');
