@@ -160,7 +160,7 @@ function initMap() {
       $('.list .is-active').removeClass('is-active');
       var currElem = $('.list .' + this.pid);
       currElem.addClass('is-active');
-      $('.list').stop().animate({ scrollTop: currElem.offset().top - 50 }, 500);
+      $('.list').stop().animate({ scrollTop: currElem.offset().top - 150 }, 500);
       for (var i = 0; i < markers.length; i++) { if(markers[i].infowindow.isOpen()){ markers[i].infowindow.close(); } }
       this.infowindow.open(map, marker);
     });
