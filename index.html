@@ -90,13 +90,14 @@ function initMap() {
   var renderList = function(data){
     var list = document.createElement('ul'), htmlStr = [];
     for (var i = 0; i < data.length; i++) {
-      htmlStr.push('<li data-pid="'+ data[i]['$']['diffgr:id'].toLowerCase() +'" class="'+ data[i]['$']['diffgr:id'].toLowerCase() +'">');
-        htmlStr.push('<p><span class="case-label">' + data[i].PName + '</span>');
-        htmlStr.push('<span class="case-label label-'+ data[i].CaseComplete +'">'+ ((data[i].CaseComplete[0] === "true") ? '已處理' : '待處理') +'</span></p>');
-        htmlStr.push('<p>地點：' + data[i].CaseLocationDistrict + data[i].CaseLocationDescription + '</p>');
-        htmlStr.push('<p>時間：' + data[i].CaseTime + '</p>');
-        htmlStr.push('<p>狀況：' + data[i].Name + '</p>');
-        htmlStr.push('<p>描述：' + data[i].CaseDescription + '</p>');
+      htmlStr.push('<li data-pid="'+ data[i].service_request_id +'" class="'+ data[i].service_request_id +'">');
+        htmlStr.push('<p><span class="case-label">' + data[i].subproject + '</span>');
+        htmlStr.push('<span class="case-label label-'+ data[i].status +'">'+ data[i].status +'</span></p>');
+        htmlStr.push('<p>地點：' + data[i].address_string + '</p>');
+        htmlStr.push('<p>舉報時間：' + data[i].requested_datetime + '</p>');
+        htmlStr.push('<p>狀況：' + data[i].description + '</p>');
+        htmlStr.push('<p>更新時間：' + data[i].updated_datetime + '</p>');
+        htmlStr.push('<p>處理情形：' + data[i].service_notice + '</p>');
       htmlStr.push('</li>');
     }
 
@@ -106,10 +107,35 @@ function initMap() {
 
   map = new google.maps.Map(document.getElementById("map"), mapOptions);
 
-  $.get('http://tonyq.org/kptaipei/GetDisasterSummary-20150808.php', function(raw){
-    var data = raw.DataSet["diffgr:diffgram"][0].NewDataSet[0].CASE_SUMMARY;
+  $.ajax('https://cors-anywhere.herokuapp.com/http://open1999.tainan.gov.tw:82/ServiceRequestsQuery.aspx', {
+    method: 'POST',
+    data: `<?xml version="1.0" encoding="utf-8" ?>
+<root>
+    <city_id><![CDATA[tainaon.gov.tw]]></city_id>
+    <service_name><![CDATA[地震通報]]></service_name>
+    <start_date><![CDATA[2016-02-06 00:00:00]]></start_date>
+    <end_date><![CDATA[2016-03-01 00:00:00]]></end_date>
+</root>`,
+    dataType: 'xml',
+    contentType: 'application/xml'
+  }).done(function(raw){
+    console.log("DATA", raw)
+    window.RAW = raw
+
     var count = [0, 0];
+
+    var data = $(raw).find('record').map(function(){
+      var $record = $(this);
+      var record = {};
+
+      (['service_request_id', 'service_name', 'subproject', 'status', 'requested_datetime', 'updated_datetime', 'area', 'description', 'address_string', 'service_notice', 'lat', 'long']).forEach(function(key){
+        record[key] = $record.find(key).text()
+      });
+      return record;
+    })
     renderList(data);
+    return
+
     for (var i = 0; i < data.length; i++) {
       addMarker( data[i] );
       if( data[i].CaseComplete[0] === "true" ) count[0]++;
