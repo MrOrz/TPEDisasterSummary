@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>蘇迪勒颱風 - 台北市災害動態資訊</title>
+  <title>美濃地震 - 台南 1999 地震回報與處理狀況</title>
   <style>
   /* http://meyerweb.com/eric/tools/css/reset/
      v2.0 | 20110126
@@ -30,7 +30,7 @@
   <script src="//googlemaps.github.io/js-marker-clusterer/src/markerclusterer_compiled.js"></script>
 </head>
 <body onload="initMap()">
-  <header class="header">蘇迪勒颱風 - 台北市災害動態資訊</header>
+  <header class="header">20160206 地震 - 台南 1999 災情回報與處理狀況</header>
   <div id="map"></div>
   <div class="list"></div>
 
@@ -47,27 +47,29 @@ function initMap() {
 
   // 地圖初始設定
   var mapOptions = {
-    center: new google.maps.LatLng(25.06464, 121.55676),
-    zoom: 12,
+    center: new google.maps.LatLng(23.1476481,120.301459),
+    zoom: 10,
     mapTypeId: google.maps.MapTypeId.ROADMAP,
     styles: styles
   };
 
   var addMarker = function(data){
-    var pinColor = (data.CaseComplete[0] === "true") ? "80e516" : "FE7569";
+    if(data.lat === '') return
+
+    var pinColor = (data.status === '已完成') ? "80e516" : "FE7569";
     var pinImage = new google.maps.MarkerImage("http://chart.apis.google.com/chart?chst=d_map_spin&chld=0.7|0|"+ pinColor +"|15|b|%E5%8D%B1");
 
     var marker = new google.maps.Marker({
-        position: new google.maps.LatLng( data.Wgs84Y, data.Wgs84X ),
+        position: new google.maps.LatLng( data.lat, data.long ),
         map: map,
-        pid: data['$']['diffgr:id'].toLowerCase(),
+        pid: data.service_request_id,
         icon: pinImage,
-        title: data.CaseLocationDistrict + data.CaseLocationDescription,
+        title: data.area + data.address_string,
         pinColor: pinColor
     });
 
     marker.infowindow = new google.maps.InfoWindow({
-      content: '<p><img src="https://maps.googleapis.com/maps/api/streetview?size=200x180&location='+ data.Wgs84Y +','+data.Wgs84X+'&fov=90&heading=180&pitch=10"></p>'
+      content: '<p><img src="https://maps.googleapis.com/maps/api/streetview?size=200x180&location='+ data.lat +','+data.long+'&fov=90&heading=180&pitch=10"></p>'
     });
 
     markers.push(marker);
@@ -93,6 +95,7 @@ function initMap() {
       htmlStr.push('<li data-pid="'+ data[i].service_request_id +'" class="'+ data[i].service_request_id +'">');
         htmlStr.push('<p><span class="case-label">' + data[i].subproject + '</span>');
         htmlStr.push('<span class="case-label label-'+ data[i].status +'">'+ data[i].status +'</span></p>');
+        htmlStr.push('<span class="case-label">'+ data[i].area +'</span></p>');
         htmlStr.push('<p>地點：' + data[i].address_string + '</p>');
         htmlStr.push('<p>舉報時間：' + data[i].requested_datetime + '</p>');
         htmlStr.push('<p>狀況：' + data[i].description + '</p>');
@@ -134,11 +137,10 @@ function initMap() {
       return record;
     })
     renderList(data);
-    return
 
     for (var i = 0; i < data.length; i++) {
       addMarker( data[i] );
-      if( data[i].CaseComplete[0] === "true" ) count[0]++;
+      if( data[i].status === "已完成" ) count[0]++;
       else count[1]++;
     }
     mc = new MarkerClusterer(map, markers, {gridSize: 80, maxZoom: 16});
@@ -150,9 +152,10 @@ function initMap() {
       for (var i = 0; i < markers.length; i++) {
         if( markers[i].pid === pid ){
           google.maps.event.trigger(markers[i], 'click');
-          break;
+          return;
         }
       }
+      alert('這份回報沒有座標資訊。')
     });
   });
 }
